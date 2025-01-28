@@ -62,3 +62,44 @@ export const deleteFromBlob = async (projectId) => {
     throw error;
   }
 };
+
+export const downloadFromBlob = async (blobUrl) => {
+  try {
+    console.log(`Starting download from blob URL: ${blobUrl}`);
+    
+    // Extract blob name from URL
+    const url = new URL(blobUrl);
+    const blobName = url.pathname.split('/').slice(2).join('/');
+    console.log(`Extracted blob name: ${blobName}`);
+    
+    // Get blob client
+    const blockBlobClient = containerClient.getBlockBlobClient(blobName);
+    console.log(`Created block blob client for: ${blobName}`);
+    
+    // Download blob content
+    console.log('Initiating download...');
+    const downloadResponse = await blockBlobClient.download();
+    console.log('Download response received');
+    
+    // Convert stream to buffer
+    const chunks = [];
+    let totalSize = 0;
+    
+    console.log('Starting to read stream chunks...');
+    // Use the browser's stream API
+    for await (const chunk of downloadResponse.readableStreamBody) {
+      const buffer = Buffer.from(chunk);
+      totalSize += buffer.length;
+      chunks.push(buffer);
+      console.log(`Read chunk of size: ${buffer.length} bytes. Total size so far: ${totalSize} bytes`);
+    }
+    
+    const buffer = Buffer.concat(chunks);
+    console.log(`Download complete. Final buffer size: ${buffer.length} bytes`);
+    return buffer;
+    
+  } catch (error) {
+    console.error('Azure download error:', error);
+    throw error;
+  }
+};
