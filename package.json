@@ -10,8 +10,11 @@
   },
   "dependencies": {
     "@azure/storage-blob": "^12.26.0",
+    "@langchain/core": "^0.3.36",
+    "@langchain/openai": "^0.4.2",
     "@supabase/ssr": "^0.5.2",
     "@supabase/supabase-js": "^2.48.1",
+    "langchain": "^0.3.14",
     "next": "15.1.6",
     "react": "^19.0.0",
     "react-dom": "^19.0.0"
