@@ -1,14 +1,33 @@
 import { Document } from "langchain/document";
 import { RecursiveCharacterTextSplitter } from "langchain/text_splitter";
 
+// Supported file types for analysis
+const SUPPORTED_FILE_TYPES = [
+  'js', 'jsx', 'ts', 'tsx',  // JavaScript/TypeScript
+  'py', 'python',            // Python
+  'java',                    // Java
+  'rb',                      // Ruby
+  'php',                     // PHP
+  'cs',                      // C#
+  'go',                      // Go
+  'rs',                      // Rust
+  'cpp', 'cc', 'cxx', 'c',  // C/C++
+  'html', 'htm',            // HTML
+  'css', 'scss', 'sass',    // CSS
+  'json',                   // JSON
+  'md', 'markdown',         // Markdown
+  'sql',                    // SQL
+  'yaml', 'yml'             // YAML
+];
+
 /**
  * Chunks the text content from a file into smaller pieces for LLM processing
  * @param {Object} file - The file object containing text content and metadata
- * @param {number} chunkSize - The size of each chunk (default: 1000)
- * @param {number} chunkOverlap - The overlap between chunks (default: 200)
+ * @param {number} chunkSize - The size of each chunk (default: 800)
+ * @param {number} chunkOverlap - The overlap between chunks (default: 100)
  * @returns {Array} Array of document chunks with metadata
  */
-export const chunkFileContent = async (file, chunkSize = 1000, chunkOverlap = 200) => {
+export const chunkFileContent = async (file, chunkSize = 800, chunkOverlap = 100) => {
   try {
     console.log(`\n=== Chunking file: ${file.filename} ===`);
     console.log(`Language: ${file.language}`);
@@ -65,6 +84,16 @@ export const chunkFileContent = async (file, chunkSize = 1000, chunkOverlap = 20
 };
 
 /**
+ * Check if a file type is supported for analysis
+ * @param {string} filename - The name of the file
+ * @returns {boolean} Whether the file type is supported
+ */
+const isFileTypeSupported = (filename) => {
+  const extension = filename.split('.').pop().toLowerCase();
+  return SUPPORTED_FILE_TYPES.includes(extension);
+};
+
+/**
  * Process multiple files and chunk their content
  * @param {Array} files - Array of files with text content
  * @returns {Array} Array of all chunks from all files
@@ -86,6 +115,13 @@ export const chunkMultipleFiles = async (files) => {
         skippedFiles++;
         continue;
       }
+
+      // Skip unsupported file types
+      if (!isFileTypeSupported(file.filename)) {
+        console.log(`⚠️ Skipping ${file.filename} - unsupported file type`);
+        skippedFiles++;
+        continue;
+      }
       
       const fileChunks = await chunkFileContent(file);
       allChunks.push(...fileChunks);
@@ -101,11 +137,11 @@ export const chunkMultipleFiles = async (files) => {
     console.log(`Total files processed: ${processedFiles}`);
     console.log(`Files skipped: ${skippedFiles}`);
     console.log(`Total chunks created: ${totalChunks}`);
-    console.log(`Average chunks per file: ${Math.round(totalChunks / processedFiles)}`);
+    console.log(`Average chunks per file: ${(totalChunks / processedFiles).toFixed(2)}`);
     
     return allChunks;
   } catch (error) {
-    console.error('Chunking error:', error);
+    console.error('Error in chunkMultipleFiles:', error);
     throw error;
   }
-};
+}

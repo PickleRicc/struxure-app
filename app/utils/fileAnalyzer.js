@@ -28,13 +28,38 @@ const JSON_FORMAT = `{
   }
 }`;
 
-const analyzeFile = async (file, chunks) => {
+// Retry configuration
+const MAX_RETRIES = 3;
+const INITIAL_RETRY_DELAY = 1000; // 1 second
+const MAX_RETRY_DELAY = 8000; // 8 seconds
+
+/**
+ * Sleep for a specified duration
+ * @param {number} ms - Duration in milliseconds
+ */
+const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
+
+/**
+ * Calculate exponential backoff delay
+ * @param {number} retryCount - Current retry attempt
+ * @returns {number} Delay in milliseconds
+ */
+const getRetryDelay = (retryCount) => {
+  const delay = Math.min(
+    INITIAL_RETRY_DELAY * Math.pow(2, retryCount),
+    MAX_RETRY_DELAY
+  );
+  return delay + Math.random() * 1000; // Add jitter
+};
+
+const analyzeFile = async (file, chunks, retryCount = 0) => {
   try {
     console.log(`\n=== Analyzing file: ${file.filename} ===`);
     
     const model = new ChatOpenAI({
       modelName: "gpt-4",
       temperature: 0.2,
+      timeout: 60000, // 60 second timeout
     });
 
     const prompt = new PromptTemplate({
@@ -62,6 +87,22 @@ const analyzeFile = async (file, chunks) => {
     return parsedResponse;
   } catch (error) {
     console.error(`Error analyzing ${file.filename}:`, error);
+    
+    // Retry logic for recoverable errors
+    if (retryCount < MAX_RETRIES && (
+      error.message.includes('timeout') ||
+      error.message.includes('rate limit') ||
+      error.message.includes('network') ||
+      error.message.includes('ECONNRESET') ||
+      error.message.includes('500') ||
+      error.message.includes('503')
+    )) {
+      const delay = getRetryDelay(retryCount);
+      console.log(`Retrying analysis for ${file.filename} in ${delay}ms (attempt ${retryCount + 1}/${MAX_RETRIES})`);
+      await sleep(delay);
+      return analyzeFile(file, chunks, retryCount + 1);
+    }
+    
     throw error;
   }
 };
@@ -84,8 +125,9 @@ export const analyzeProject = async (files, chunks) => {
     }, {});
 
     // Process files in parallel batches
-    const BATCH_SIZE = 10;
+    const BATCH_SIZE = 15;
     const fileAnalyses = [];
+    const skippedFiles = [];
     
     for (let i = 0; i < uniqueFiles.length; i += BATCH_SIZE) {
       console.log(`\nProcessing batch ${Math.floor(i/BATCH_SIZE) + 1} of ${Math.ceil(uniqueFiles.length/BATCH_SIZE)}`);
@@ -94,48 +136,72 @@ export const analyzeProject = async (files, chunks) => {
       const batchPromises = batch.map(file => {
         if (!file.success) {
           console.log(`Skipping ${file.filename} - parsing was not successful`);
+          skippedFiles.push({
+            filename: file.filename,
+            reason: 'parsing_failed'
+          });
           return null;
         }
         
         const fileChunks = chunksByFile[file.filename] || [];
         if (fileChunks.length === 0) {
           console.log(`Skipping ${file.filename} - no chunks found`);
+          skippedFiles.push({
+            filename: file.filename,
+            reason: 'no_chunks'
+          });
           return null;
         }
         
         return analyzeFile(file, fileChunks)
           .then(analysis => ({
-            fileId: file.id,
             filename: file.filename,
             analysis
           }))
           .catch(error => {
-            console.error(`Error analyzing ${file.filename}:`, error);
+            console.error(`Failed to analyze ${file.filename}:`, error);
+            skippedFiles.push({
+              filename: file.filename,
+              reason: 'analysis_failed',
+              error: error.message
+            });
             return null;
           });
       });
       
       const batchResults = await Promise.all(batchPromises);
-      const validResults = batchResults.filter(result => result !== null);
-      fileAnalyses.push(...validResults);
+      fileAnalyses.push(...batchResults.filter(Boolean));
       
-      console.log(`Completed batch with ${validResults.length} successful analyses`);
+      // Log batch completion
+      console.log(`Completed batch ${Math.floor(i/BATCH_SIZE) + 1}`);
+      console.log(`Processed ${fileAnalyses.length} files so far`);
     }
-
-    // Create project-level analysis
-    const projectAnalysis = {
-      totalFiles: uniqueFiles.length,
-      analyzedFiles: fileAnalyses.length,
-      files: fileAnalyses,
-      relationships: generateFileRelationships(fileAnalyses),
-      timestamp: new Date().toISOString(),
-    };
-
+    
     console.log('\n====== Analysis Summary ======');
-    console.log(`Total unique files: ${uniqueFiles.length}`);
-    console.log(`Successfully analyzed files: ${fileAnalyses.length}`);
-    console.log(`Skipped/failed files: ${uniqueFiles.length - fileAnalyses.length}`);
+    console.log(`Successfully analyzed ${fileAnalyses.length} files`);
+    console.log(`Skipped/failed files: ${skippedFiles.length}`);
 
+    // Create project-level analysis with metadata
+    const projectAnalysis = {
+      summary: {
+        totalFiles: uniqueFiles.length,
+        analyzedFiles: fileAnalyses.length,
+        skippedFiles: skippedFiles.length
+      },
+      files: fileAnalyses.reduce((acc, file) => {
+        acc[file.filename] = file.analysis;
+        return acc;
+      }, {}),
+      skippedFiles: skippedFiles.reduce((acc, file) => {
+        acc[file.filename] = {
+          reason: file.reason,
+          error: file.error
+        };
+        return acc;
+      }, {}),
+      timestamp: new Date().toISOString()
+    };
+    
     return projectAnalysis;
   } catch (error) {
     console.error('Project analysis error:', error);

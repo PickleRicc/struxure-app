@@ -4,7 +4,7 @@ import { useState, useRef } from 'react'
 import { supabase } from '../utils/supabase'
 import { chunkMultipleFiles } from '../utils/textChunker'
 
-export default function FolderUpload({ projectId }) {
+export default function FolderUpload({ projectId, onAnalysisStart, onAnalysisComplete }) {
   const [uploading, setUploading] = useState(false)
   const [progress, setProgress] = useState(0)
   const [error, setError] = useState(null)
@@ -74,6 +74,7 @@ export default function FolderUpload({ projectId }) {
     try {
       setBuildingMap(true);
       setError(null);
+      onAnalysisStart?.();
       
       console.log('=== Starting Map Building Process ===');
       console.log(`Total files to process: ${parsedFiles.length}`);
@@ -111,33 +112,56 @@ export default function FolderUpload({ projectId }) {
         throw new Error('Not authenticated');
       }
 
-      const response = await fetch('/api/files/analyze', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${session.access_token}`
-        },
-        body: JSON.stringify({
-          projectId,
-          files: parsedFiles,
-          chunks: fileChunks
-        })
-      });
+      // Create AbortController for timeout
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 120000); // 2 minute timeout
 
-      if (!response.ok) {
-        const data = await response.json();
-        throw new Error(data.error || 'Analysis failed');
+      try {
+        const response = await fetch('/api/files/analyze', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${session.access_token}`
+          },
+          body: JSON.stringify({
+            projectId,
+            files: parsedFiles,
+            chunks: fileChunks
+          }),
+          signal: controller.signal
+        });
+
+        clearTimeout(timeoutId);
+
+        if (!response.ok) {
+          const data = await response.json();
+          throw new Error(data.error || 'Analysis failed');
+        }
+
+        const analysisResult = await response.json();
+        console.log('Analysis complete:', analysisResult);
+        onAnalysisComplete?.();
+      } catch (err) {
+        if (err.name === 'AbortError') {
+          throw new Error('Analysis timed out. Please try again with fewer files.');
+        }
+        throw err;
+      } finally {
+        clearTimeout(timeoutId);
       }
-
-      const analysisResult = await response.json();
-      console.log('Analysis complete:', analysisResult);
       
     } catch (err) {
       console.error('Error building map:', err);
       setError(err.message);
+      onAnalysisComplete?.(); // Ensure we complete even on error
     } finally {
       setBuildingMap(false);
     }
+  };
+
+  const handleRetry = async () => {
+    setError(null);
+    await handleBuildMap();
   };
 
   const handleFileChange = async (e) => {
