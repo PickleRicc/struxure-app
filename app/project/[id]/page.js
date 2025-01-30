@@ -104,7 +104,12 @@ export default function ProjectPage() {
     }, 3000)
   }
 
-  const handleAnalysisComplete = () => {
+  const handleAnalysisComplete = (analysisData) => {
+    if (analysisData) {
+      setAnalysis(analysisData);
+      setAnalysisLoading(false);
+      setActiveTab('text');
+    }
     setAnalysisStatus('Map is created!')
     setTimeout(() => setAnalysisStatus(''), 2000)
   }
@@ -167,29 +172,51 @@ export default function ProjectPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 py-8">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen bg-black">
+      <nav className="bg-[#1A1B26] shadow-sm">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex justify-between h-16">
+            <div className="flex items-center space-x-8">
+              <button
+                onClick={() => router.push('/homepage')}
+                className="text-[#EAEAEA] hover:text-[#4CAF50] transition-colors duration-200 flex items-center space-x-2"
+              >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+                </svg>
+                <span>Back to Home</span>
+              </button>
+              <span className="text-[#3A3D56]">|</span>
+              <span className="text-[#EAEAEA] font-medium">
+                {project?.title || 'Project Details'}
+              </span>
+            </div>
+          </div>
+        </div>
+      </nav>
+
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="space-y-8">
           {/* Project Header */}
-          <div className="bg-white shadow rounded-lg p-6">
-            <h1 className="text-2xl font-bold text-gray-900 mb-2">
+          <div className="bg-[#1A1B26] shadow rounded-lg p-6">
+            <h1 className="text-2xl font-bold text-[#EAEAEA] mb-2">
               {project.title || 'Untitled Project'}
             </h1>
-            <p className="text-sm text-gray-500">
+            <p className="text-sm text-[#3A3D56]">
               Project ID: {project.id}
             </p>
           </div>
 
           {/* Tabs */}
-          <div className="bg-white shadow rounded-lg overflow-hidden">
-            <div className="border-b border-gray-200">
+          <div className="bg-[#1A1B26] shadow rounded-lg overflow-hidden">
+            <div className="border-b border-[#3A3D56]">
               <nav className="-mb-px flex">
                 <button
                   onClick={() => setActiveTab('upload')}
                   className={`${
                     activeTab === 'upload'
-                      ? 'border-blue-500 text-blue-600'
-                      : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                      ? 'border-[#4CAF50] text-[#4CAF50]'
+                      : 'border-transparent text-[#3A3D56] hover:text-[#EAEAEA] hover:border-[#3A3D56]'
                   } whitespace-nowrap py-4 px-6 border-b-2 font-medium text-sm`}
                 >
                   Upload Files
@@ -198,8 +225,8 @@ export default function ProjectPage() {
                   onClick={() => setActiveTab('text')}
                   className={`${
                     activeTab === 'text'
-                      ? 'border-blue-500 text-blue-600'
-                      : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                      ? 'border-[#4CAF50] text-[#4CAF50]'
+                      : 'border-transparent text-[#3A3D56] hover:text-[#EAEAEA] hover:border-[#3A3D56]'
                   } whitespace-nowrap py-4 px-6 border-b-2 font-medium text-sm`}
                 >
                   Text Map
@@ -208,8 +235,8 @@ export default function ProjectPage() {
                   onClick={() => setActiveTab('visual')}
                   className={`${
                     activeTab === 'visual'
-                      ? 'border-blue-500 text-blue-600'
-                      : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                      ? 'border-[#4CAF50] text-[#4CAF50]'
+                      : 'border-transparent text-[#3A3D56] hover:text-[#EAEAEA] hover:border-[#3A3D56]'
                   } whitespace-nowrap py-4 px-6 border-b-2 font-medium text-sm`}
                 >
                   Visual Map
@@ -220,24 +247,24 @@ export default function ProjectPage() {
             {/* Tab Content */}
             <div className="p-6">
               {error && (
-                <div className="mb-4 p-4 bg-red-50 rounded-md">
+                <div className="mb-4 p-4 bg-[#1A1B26] border border-[#3A3D56] rounded-md">
                   <div className="flex">
                     <div className="flex-shrink-0">
-                      <svg className="h-5 w-5 text-red-400" viewBox="0 0 20 20" fill="currentColor">
+                      <svg className="h-5 w-5 text-[#4CAF50]" viewBox="0 0 20 20" fill="currentColor">
                         <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
                       </svg>
                     </div>
                     <div className="ml-3">
-                      <h3 className="text-sm font-medium text-red-800">
+                      <h3 className="text-sm font-medium text-[#EAEAEA]">
                         Error
                       </h3>
-                      <div className="mt-2 text-sm text-red-700">
+                      <div className="mt-2 text-sm text-[#EAEAEA]">
                         <p>{error}</p>
                       </div>
                       <div className="mt-4">
                         <button
                           onClick={handleRetry}
-                          className="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-red-700 bg-red-100 hover:bg-red-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
+                          className="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-[#EAEAEA] bg-[#3A3D56] hover:bg-[#4CAF50] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#4CAF50]"
                         >
                           Retry Analysis
                         </button>
@@ -248,16 +275,48 @@ export default function ProjectPage() {
               )}
 
               {analysisStatus && (
-                <div className="mb-4 text-center text-sm font-medium text-blue-600">
-                  {analysisStatus}
+                <div className="mb-8 text-center">
+                  <div className="inline-flex flex-col items-center">
+                    {/* Loading spinner */}
+                    <div className="relative w-16 h-16 mb-4">
+                      <div className="absolute top-0 left-0 w-full h-full border-4 border-[#3A3D56] rounded-full animate-pulse"></div>
+                      <div className="absolute top-0 left-0 w-full h-full border-4 border-[#4CAF50] rounded-full animate-spin" style={{ borderTopColor: 'transparent', animationDuration: '1.5s' }}></div>
+                      <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
+                        <svg className="w-6 h-6 text-[#4CAF50]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                      </div>
+                    </div>
+                    {/* Status text with typing animation */}
+                    <div className="space-y-2">
+                      <div className="text-lg font-medium text-[#4CAF50] animate-pulse">
+                        {analysisStatus}
+                      </div>
+                      <div className="flex items-center justify-center space-x-1">
+                        <div className="w-2 h-2 bg-[#4CAF50] rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></div>
+                        <div className="w-2 h-2 bg-[#4CAF50] rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></div>
+                        <div className="w-2 h-2 bg-[#4CAF50] rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></div>
+                      </div>
+                    </div>
+                  </div>
                 </div>
               )}
               
               {activeTab === 'upload' && (
                 <div>
-                  <h2 className="text-xl font-semibold text-gray-900 mb-4">
+                  <h2 className="text-xl font-semibold text-[#EAEAEA] mb-4">
                     Upload Files
                   </h2>
+                  <div className="bg-[#1A1B26]/50 border border-[#3A3D56] rounded-lg p-4 mb-6">
+                    <div className="flex items-start space-x-3">
+                      <svg className="w-5 h-5 text-[#4CAF50] mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                      </svg>
+                      <p className="text-[#EAEAEA]/90">
+                        <span className="font-medium">Important:</span> Please upload all your files in a single operation. Files are linked to the project during the initial upload, and subsequent uploads may not be properly associated with this project.
+                      </p>
+                    </div>
+                  </div>
                   <FolderUpload 
                     projectId={projectId} 
                     onAnalysisStart={handleAnalysisStart}
@@ -268,19 +327,24 @@ export default function ProjectPage() {
 
               {activeTab === 'text' && (
                 <div>
-                  <h2 className="text-xl font-semibold text-gray-900 mb-4">
+                  <h2 className="text-xl font-semibold text-[#EAEAEA] mb-4">
                     Text Map
                   </h2>
                   {analysisLoading ? (
                     <div className="text-center py-12">
-                      <div className="animate-pulse text-gray-500">
-                        Analyzing your files...
+                      <div className="inline-flex flex-col items-center">
+                        <div className="relative w-20 h-20 mb-4">
+                          <div className="absolute top-0 left-0 w-full h-full border-4 border-[#3A3D56]/30 rounded-full"></div>
+                          <div className="absolute top-0 left-0 w-full h-full border-4 border-[#4CAF50] rounded-full animate-spin" style={{ borderTopColor: 'transparent', animationDuration: '1s' }}></div>
+                        </div>
+                        <div className="text-lg text-[#EAEAEA] mb-2">Processing Files</div>
+                        <div className="text-sm text-[#3A3D56]">This may take a few moments...</div>
                       </div>
                     </div>
                   ) : analysis ? (
                     <TextMap analysis={analysis} />
                   ) : (
-                    <div className="text-center py-12 text-gray-500">
+                    <div className="text-center py-12 text-[#3A3D56]">
                       No analysis available. Upload files to generate a map.
                     </div>
                   )}
@@ -289,19 +353,24 @@ export default function ProjectPage() {
 
               {activeTab === 'visual' && (
                 <div>
-                  <h2 className="text-xl font-semibold text-gray-900 mb-4">
+                  <h2 className="text-xl font-semibold text-[#EAEAEA] mb-4">
                     Visual Map
                   </h2>
                   {analysisLoading ? (
                     <div className="text-center py-12">
-                      <div className="animate-pulse text-gray-500">
-                        Analyzing your files...
+                      <div className="inline-flex flex-col items-center">
+                        <div className="relative w-20 h-20 mb-4">
+                          <div className="absolute top-0 left-0 w-full h-full border-4 border-[#3A3D56]/30 rounded-full"></div>
+                          <div className="absolute top-0 left-0 w-full h-full border-4 border-[#4CAF50] rounded-full animate-spin" style={{ borderTopColor: 'transparent', animationDuration: '1s' }}></div>
+                        </div>
+                        <div className="text-lg text-[#EAEAEA] mb-2">Processing Files</div>
+                        <div className="text-sm text-[#3A3D56]">This may take a few moments...</div>
                       </div>
                     </div>
                   ) : analysis ? (
                     <FileTreeMap analysis={analysis} />
                   ) : (
-                    <div className="text-center py-12 text-gray-500">
+                    <div className="text-center py-12 text-[#3A3D56]">
                       No analysis available. Upload files to generate a map.
                     </div>
                   )}

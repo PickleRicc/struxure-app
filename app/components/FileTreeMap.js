@@ -54,7 +54,7 @@ export default function FileTreeMap({ analysis }) {
       .append('path')
       .attr('class', 'link')
       .attr('fill', 'none')
-      .attr('stroke', '#ccc')
+      .attr('stroke', '#3A3D56')
       .attr('stroke-width', 1)
       .attr('d', d3.linkHorizontal()
         .x(d => d.y)
@@ -71,7 +71,7 @@ export default function FileTreeMap({ analysis }) {
     // Add circles for nodes
     nodes.append('circle')
       .attr('r', 4)
-      .attr('fill', d => d.children ? '#555' : '#999')
+      .attr('fill', d => d.children ? '#4CAF50' : '#3A3D56')
 
     // Add labels
     nodes.append('text')
@@ -81,11 +81,12 @@ export default function FileTreeMap({ analysis }) {
       .text(d => d.data.name)
       .style('font-size', '12px')
       .style('font-family', 'sans-serif')
+      .style('fill', '#EAEAEA')
 
   }, [analysis])
 
   return (
-    <div className="w-full overflow-x-auto bg-white rounded-lg shadow p-6">
+    <div className="w-full overflow-x-auto bg-[#121212] rounded-lg shadow p-6">
       <svg ref={svgRef} className="w-full"></svg>
     </div>
   )

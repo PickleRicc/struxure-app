@@ -19,12 +19,14 @@ export default function SignUpPage() {
   }, [router]);
 
   return (
-    <div>
-      <SignUp />
-      <div className="text-center mt-4">
-        <p className="text-sm text-gray-600">
+    <div className="flex flex-col items-center min-h-screen bg-[#121212]">
+      <div className="w-full">
+        <SignUp />
+      </div>
+      <div className="mt-6 text-center transform -translate-y-4">
+        <p className="text-sm text-[#EAEAEA]">
           Already have an account?{' '}
-          <Link href="/login" className="text-indigo-600 hover:text-indigo-500 font-medium">
+          <Link href="/login" className="font-medium text-[#4CAF50] hover:text-[#66BB6A] transition-colors duration-200">
             Sign in
           </Link>
         </p>

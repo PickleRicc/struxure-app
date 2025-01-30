@@ -72,42 +72,42 @@ export default function ProjectList() {
   }
 
   if (loading) {
-    return <div className="text-center">Loading projects...</div>
+    return <div className="text-center text-[#EAEAEA]">Loading projects...</div>
   }
 
   if (error) {
-    return <div className="text-red-600 text-center">{error}</div>
+    return <div className="text-[#4CAF50] text-center">{error}</div>
   }
 
   if (projects.length === 0) {
-    return <div className="text-center text-gray-500">No projects found</div>
+    return <div className="text-center text-[#EAEAEA]">No projects found</div>
   }
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-6 bg-[#1A1B26] p-6 rounded-lg">
       {projects.map((project) => (
         <div
           key={project.id}
-          className="flex items-center justify-between p-4 bg-white rounded-lg shadow"
+          className="flex items-center justify-between p-6 bg-gradient-to-r from-[#1E1E2E] to-[#1E1E2E]/95 rounded-lg shadow-sm border border-[#3A3D56]/20 hover:border-[#3A3D56]/40 transition-all duration-200"
         >
           <div className="flex-1">
-            <h3 className="text-lg font-medium text-gray-900">
+            <h3 className="text-xl font-semibold text-[#EAEAEA]">
               {project.title || 'Untitled Project'}
             </h3>
-            <p className="text-sm text-gray-500">
-              Created: {new Date(project.created_at).toLocaleDateString()}
+            <p className="text-sm text-[#3A3D56]/80">
+              Created: {new Date(project.created_at).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })}
             </p>
           </div>
-          <div className="flex space-x-2">
+          <div className="flex space-x-3">
             <button
               onClick={() => handleViewProject(project.id)}
-              className="px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+              className="px-3 py-1.5 bg-[#3A3D56]/80 text-[#EAEAEA] text-sm font-medium rounded-md hover:bg-[#4CAF50] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#4CAF50] transition-colors duration-200"
             >
               View Project
             </button>
             <button
               onClick={() => handleDeleteProject(project.id)}
-              className="px-4 py-2 bg-red-600 text-white text-sm font-medium rounded-md hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
+              className="px-3 py-1.5 border border-[#3A3D56]/50 text-[#EAEAEA] text-sm font-medium rounded-md hover:bg-[#3A3D56]/80 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#3A3D56] transition-colors duration-200"
             >
               Delete
             </button>

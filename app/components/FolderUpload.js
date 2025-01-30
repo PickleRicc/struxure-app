@@ -140,7 +140,7 @@ export default function FolderUpload({ projectId, onAnalysisStart, onAnalysisCom
 
         const analysisResult = await response.json();
         console.log('Analysis complete:', analysisResult);
-        onAnalysisComplete?.();
+        onAnalysisComplete?.(analysisResult.analysis.analysis_data);
       } catch (err) {
         if (err.name === 'AbortError') {
           throw new Error('Analysis timed out. Please try again with fewer files.');
@@ -229,9 +229,9 @@ export default function FolderUpload({ projectId, onAnalysisStart, onAnalysisCom
   }
 
   return (
-    <div className="w-full max-w-xl mx-auto p-6 bg-white rounded-lg shadow">
+    <div className="bg-[#1A1B26] rounded-lg p-6">
       <div className="text-center">
-        <h3 className="text-lg font-medium text-gray-900 mb-4">
+        <h3 className="text-lg font-medium text-[#EAEAEA] mb-4">
           Upload Folder
         </h3>
         
@@ -246,24 +246,54 @@ export default function FolderUpload({ projectId, onAnalysisStart, onAnalysisCom
             className="hidden"
           />
           
-          <button
+          <div 
             onClick={handleFolderSelect}
-            disabled={uploading || buildingMap}
-            className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50"
+            className={`
+              cursor-pointer 
+              border-2 border-dashed border-[#3A3D56] 
+              rounded-lg p-8 
+              transition-all duration-300 ease-in-out
+              ${uploading || buildingMap ? 
+                'opacity-50 cursor-not-allowed' : 
+                'hover:border-[#4CAF50] hover:bg-[#1E1E2E] group'
+              }
+            `}
           >
-            {uploading ? 'Processing...' : 'Select Folder'}
-          </button>
+            <div className="flex flex-col items-center space-y-4">
+              <svg 
+                className="w-12 h-12 text-[#3A3D56] group-hover:text-[#4CAF50] transition-colors duration-300" 
+                fill="none" 
+                stroke="currentColor" 
+                viewBox="0 0 24 24"
+              >
+                <path 
+                  strokeLinecap="round" 
+                  strokeLinejoin="round" 
+                  strokeWidth={2} 
+                  d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"
+                />
+              </svg>
+              <div className="text-[#EAEAEA] group-hover:text-[#4CAF50] transition-colors duration-300">
+                <p className="text-lg font-medium">
+                  {uploading ? 'Processing...' : 'Click to Select Folder'}
+                </p>
+                <p className="text-sm text-[#3A3D56] mt-1">
+                  Upload your project files
+                </p>
+              </div>
+            </div>
+          </div>
         </div>
 
         {uploading && (
-          <div className="mt-4">
-            <div className="w-full bg-gray-200 rounded-full h-2.5">
+          <div className="mt-6">
+            <div className="w-full bg-[#1E1E2E] rounded-full h-2.5 overflow-hidden">
               <div 
-                className="bg-blue-600 h-2.5 rounded-full transition-all duration-300"
+                className="bg-[#4CAF50] h-2.5 rounded-full transition-all duration-500 ease-out"
                 style={{ width: `${progress}%` }}
               ></div>
             </div>
-            <p className="text-sm text-gray-600 mt-2">
+            <p className="text-sm text-[#EAEAEA] mt-2">
               {progress <= 50 ? 'Uploading...' : 
                progress <= 75 ? 'Processing...' : 
                'Analyzing...'} {progress}%
@@ -272,26 +302,26 @@ export default function FolderUpload({ projectId, onAnalysisStart, onAnalysisCom
         )}
 
         {error && (
-          <div className="mt-4 text-sm text-red-600">
+          <div className="mt-6 text-sm text-[#EAEAEA] bg-red-500/10 border border-red-500/20 rounded-md p-3">
             {error}
           </div>
         )}
 
         {readyToBuild && (
           <div className="mt-6">
-            <p className="text-green-600 font-medium mb-4">
+            <p className="text-[#4CAF50] font-medium mb-4">
               Ready to Build Map
             </p>
             <button
               onClick={handleBuildMap}
               disabled={buildingMap}
-              className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 disabled:opacity-50"
+              className="inline-flex items-center px-6 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-[#EAEAEA] bg-[#3A3D56] hover:bg-[#4CAF50] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#4CAF50] disabled:opacity-50 transition-colors duration-300"
             >
               {buildingMap ? 'Processing...' : 'Build Map'}
             </button>
             
             {chunks && (
-              <div className="mt-4 text-sm text-gray-600">
+              <div className="mt-4 text-sm text-[#EAEAEA]">
                 Successfully created {chunks.length} chunks from your files
               </div>
             )}
