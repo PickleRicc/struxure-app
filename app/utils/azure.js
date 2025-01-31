@@ -67,10 +67,10 @@ export const downloadFromBlob = async (blobUrl) => {
   try {
     console.log(`Starting download from blob URL: ${blobUrl}`);
     
-    // Extract blob name from URL
+    // Extract blob name from URL and decode it properly
     const url = new URL(blobUrl);
-    const blobName = url.pathname.split('/').slice(2).join('/');
-    console.log(`Extracted blob name: ${blobName}`);
+    const blobName = decodeURIComponent(url.pathname.split('/').slice(2).join('/'));
+    console.log(`Extracted and decoded blob name: ${blobName}`);
     
     // Get blob client
     const blockBlobClient = containerClient.getBlockBlobClient(blobName);
