@@ -45,16 +45,31 @@ export default function ProjectPage() {
 
         setProject(projectData)
 
-        // Fetch latest analysis
-        const { data: analysisData, error: analysisError } = await supabase
-          .from('project_analyses')
-          .select('*')
-          .eq('project_id', projectId)
-          .order('created_at', { ascending: false })
-          .limit(1)
-          .single()
+        // Fetch latest analysis with retry logic
+        const fetchAnalysis = async (retries = 3) => {
+          try {
+            const { data: analysisData, error: analysisError } = await supabase
+              .from('project_analyses')
+              .select('*')
+              .eq('project_id', projectId)
+              .order('created_at', { ascending: false })
+              .limit(1)
+              .single()
 
-        if (!analysisError && analysisData) {
+            if (analysisError) throw analysisError
+            return analysisData
+          } catch (error) {
+            if (retries > 0 && error.status === 406) {
+              // Refresh session and retry
+              await supabase.auth.refreshSession()
+              return fetchAnalysis(retries - 1)
+            }
+            throw error
+          }
+        }
+
+        const analysisData = await fetchAnalysis()
+        if (analysisData) {
           setAnalysis(analysisData.analysis_data)
           setActiveTab('text')
         }
