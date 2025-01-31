@@ -54,17 +54,26 @@ export default function ProjectPage() {
               .eq('project_id', projectId)
               .order('created_at', { ascending: false })
               .limit(1)
-              .single()
+              .maybeSingle()
 
-            if (analysisError) throw analysisError
-            return analysisData
-          } catch (error) {
-            if (retries > 0 && error.status === 406) {
-              // Refresh session and retry
-              await supabase.auth.refreshSession()
-              return fetchAnalysis(retries - 1)
+            // If there's a 406 error, try refreshing the session
+            if (analysisError?.status === 406) {
+              if (retries > 0) {
+                await supabase.auth.refreshSession()
+                return fetchAnalysis(retries - 1)
+              }
+              throw analysisError
             }
-            throw error
+
+            // Return null if no analysis exists yet
+            return analysisData || null
+          } catch (error) {
+            console.error('Analysis fetch error:', error)
+            // Only throw if it's not a "no rows" error
+            if (error.code !== 'PGRST116') {
+              throw error
+            }
+            return null
           }
         }
 
